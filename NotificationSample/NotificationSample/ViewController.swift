@@ -8,7 +8,7 @@
 import UIKit
 import UserNotifications
 
-class ViewController: UIViewController {
+class ViewController: UIViewController,UNUserNotificationCenterDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,14 +19,14 @@ class ViewController: UIViewController {
                 UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
                     print(granted ? "✅ Permission granted" : "❌ Permission denied")
                 }
-
+        UNUserNotificationCenter.current().delegate = self
                 setupButtonGrid()
     }
     func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                    willPresent notification: UNNotification,
-                                    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-            completionHandler([.banner, .sound]) // Show banner and play sound
-        }
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound]) // show banner and play sound even when app is open
+    }
     func setupButtonGrid() {
             let titles = ["1", "2", "3", "4"]
             let colors: [UIColor] = [.systemRed, .systemBlue, .systemGreen, .systemOrange]
@@ -82,31 +82,30 @@ class ViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
         }
+    func triggerNotification(for button: Int) {
+        let content = UNMutableNotificationContent()
+        content.title = "Notification \(button)"
+        content.body = "You tapped button \(button)"
 
-        func triggerNotification(for button: Int) {
-            let content = UNMutableNotificationContent()
-            content.title = "Notification \(button)"
-            content.body = "You tapped button \(button)"
+        // Custom sound
+        let soundName = UNNotificationSoundName("sound\(button).wav")
+        content.sound = UNNotificationSound(named: soundName)
 
-            // Use corresponding custom sound
-            let soundName = UNNotificationSoundName("sample\(button).wav")
-            content.sound = UNNotificationSound(named: soundName)
+        // Trigger as fast as possible
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
 
-            // Trigger after 2 seconds
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: "local_\(button)",
+                                            content: content,
+                                            trigger: trigger)
 
-            let request = UNNotificationRequest(identifier: "local_\(button)",
-                                                content: content,
-                                                trigger: trigger)
-
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error = error {
-                    print("❌ Error scheduling notification: \(error.localizedDescription)")
-                } else {
-                    print("✅ Notification \(button) scheduled.")
-                }
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ Error scheduling: \(error.localizedDescription)")
+            } else {
+                print("✅ Notification \(button) triggered.")
             }
         }
+    }
 
 }
 
