@@ -88,7 +88,7 @@ class ViewController: UIViewController,UNUserNotificationCenterDelegate {
         content.body = "You tapped button \(button)"
 
         // Custom sound
-        let soundName = UNNotificationSoundName("sound\(button).wav")
+        let soundName = UNNotificationSoundName("sample\(button).wav")
         content.sound = UNNotificationSound(named: soundName)
 
         // Trigger as fast as possible
